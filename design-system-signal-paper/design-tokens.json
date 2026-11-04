@@ -1,0 +1,207 @@
+{
+  "meta": {
+    "name": "Signal Paper",
+    "description": "A quiet instrument-paper interface for a local network traffic monitor: cool paper, white panels, ink-green and copper data channels.",
+    "version": "1.0.0",
+    "created": "2026-11-03",
+    "personality": "A measuring instrument, not a SaaS dashboard. Restrained, precise, slightly technical. One memorable element — the full-width 60-second signal band — while everything around it stays quiet. Data is the decoration."
+  },
+  "colors": {
+    "primary": { "value": "#0E5E56", "usage": "Primary action, active navigation, download channel, focus ring" },
+    "primary-hover": { "value": "#0A4B45", "usage": "Hover/pressed state for primary controls and active chart marks" },
+    "primary-soft": { "value": "#DCEAE5", "usage": "Download channel area fill, selected chip background" },
+    "secondary": { "value": "#A85F2A", "usage": "Upload channel, secondary data series, copper accent" },
+    "secondary-soft": { "value": "#F0E3D8", "usage": "Upload channel area fill" },
+    "accent": { "value": "#A85F2A", "usage": "Single highlight for the upload channel; never used for chrome" },
+    "background": { "value": "#F2F4F1", "usage": "Window background, instrument paper" },
+    "surface": { "value": "#FFFFFF", "usage": "Cards, tables, chart plot background" },
+    "surface-elevated": { "value": "#FFFFFF", "usage": "Menus and dialogs (same surface, separated by border)" },
+    "surface-muted": { "value": "#E8EDE9", "usage": "Chip backgrounds, table header, inactive wells" },
+    "border": { "value": "#D7DFDA", "usage": "Card borders, table rules, chart grid (1px hairline)" },
+    "border-strong": { "value": "#B9C6C0", "usage": "Hover border on interactive chips and arrows" },
+    "text-primary": { "value": "#16211D", "usage": "Headings, primary values, body text" },
+    "text-secondary": { "value": "#55645E", "usage": "Labels, captions, column headers" },
+    "text-tertiary": { "value": "#66756E", "usage": "Fine print, axis labels, footer (AA on background)" },
+    "text-on-primary": { "value": "#FFFFFF", "usage": "Text on primary-filled chips" },
+    "success": { "value": "#2F7D5A", "usage": "Live/healthy status dot and confirmation text" },
+    "warning": { "value": "#9A6B12", "usage": "Degraded collector mode warning" },
+    "error": { "value": "#B0362D", "usage": "Startup errors and destructive actions" },
+    "info": { "value": "#3E6B7A", "usage": "Neutral informational notes" }
+  },
+  "typography": {
+    "font-display": { "family": "Bahnschrift", "fallback": "DIN Alternate, Segoe UI Semibold, sans-serif", "source": "System font (Windows 10+)" },
+    "font-body": { "family": "Microsoft YaHei UI", "fallback": "Microsoft YaHei, Segoe UI, Tahoma, sans-serif", "source": "System font (Windows)" },
+    "font-mono": { "family": "Consolas", "fallback": "Cascadia Mono, Courier New, monospace", "source": "System font (Windows)" },
+    "scale": {
+      "xs": { "size": "11px", "lineHeight": "14px", "usage": "Axis labels, footer, table column headers" },
+      "sm": { "size": "12px", "lineHeight": "16px", "usage": "Table numbers, status pill, secondary metadata" },
+      "base": { "size": "13px", "lineHeight": "20px", "usage": "Body text, application names, navigation" },
+      "lg": { "size": "15px", "lineHeight": "22px", "usage": "Card titles, section headers" },
+      "xl": { "size": "18px", "lineHeight": "24px", "usage": "Window title" },
+      "2xl": { "size": "20px", "lineHeight": "26px", "usage": "History total summary" },
+      "3xl": { "size": "34px", "lineHeight": "38px", "usage": "Live download/upload rate" }
+    },
+    "weights": {
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    }
+  },
+  "spacing": {
+    "base-unit": "4px",
+    "scale": {
+      "0": "0",
+      "1": "4px",
+      "2": "8px",
+      "3": "12px",
+      "4": "16px",
+      "5": "20px",
+      "6": "24px",
+      "7": "28px",
+      "8": "32px",
+      "10": "40px",
+      "12": "48px",
+      "16": "64px"
+    }
+  },
+  "borders": {
+    "radius": {
+      "none": "0",
+      "sm": "4px",
+      "md": "6px",
+      "lg": "10px",
+      "full": "9999px"
+    },
+    "width": {
+      "hairline": "1px",
+      "thick": "2px"
+    }
+  },
+  "shadows": {
+    "sm": { "value": "none", "usage": "Native Win32 surface: depth comes from borders, not shadows" },
+    "md": { "value": "none", "usage": "Cards are flat white with a 1px border" },
+    "lg": { "value": "none", "usage": "No elevated surfaces in v1" },
+    "glow": { "value": "none", "usage": "Not applicable" }
+  },
+  "effects": {
+    "backdrop-blur": null,
+    "glass-opacity": null,
+    "transition-default": "120ms ease-out",
+    "transition-slow": "160ms ease-out"
+  },
+  "components": {
+    "window": {
+      "bg": "colors.background",
+      "min-size": "980x660",
+      "default-size": "1180x800",
+      "padding": "spacing.7"
+    },
+    "header": {
+      "height": "64px",
+      "title": "typography.scale.xl / font-display / semibold",
+      "nav": "typography.scale.base / font-body / medium",
+      "nav-active": "colors.primary with 2px underline",
+      "nav-hover": "colors.text-primary on colors.surface-muted"
+    },
+    "status-pill": {
+      "bg": "colors.surface-muted",
+      "text": "colors.text-secondary",
+      "dot-live": "colors.success",
+      "dot-degraded": "colors.warning",
+      "radius": "borders.radius.full",
+      "padding": "spacing.1 spacing.3",
+      "type": "typography.scale.xs"
+    },
+    "metric": {
+      "label": "typography.scale.sm / colors.text-secondary",
+      "value": "typography.scale.3xl / font-display / semibold / colors.text-primary",
+      "unit": "typography.scale.base / colors.text-tertiary",
+      "up-color": "colors.secondary",
+      "down-color": "colors.primary"
+    },
+    "card": {
+      "bg": "colors.surface",
+      "radius": "borders.radius.lg",
+      "shadow": "shadows.md (none)",
+      "border": "colors.border 1px",
+      "padding": "spacing.5",
+      "header-height": "36px"
+    },
+    "chart": {
+      "plot-bg": "colors.surface",
+      "grid": "colors.surface-muted 1px",
+      "down-stroke": "colors.primary",
+      "up-stroke": "colors.secondary",
+      "down-fill": "colors.primary-soft",
+      "up-fill": "colors.secondary-soft",
+      "axis-label": "typography.scale.xs / colors.text-tertiary",
+      "bar-radius": "2px"
+    },
+    "table": {
+      "header-bg": "colors.surface",
+      "header-text": "typography.scale.xs / colors.text-secondary",
+      "header-height": "28px",
+      "row-height": "36px",
+      "rule": "colors.surface-muted 1px",
+      "name": "typography.scale.base / colors.text-primary",
+      "number": "typography.scale.sm / font-mono / colors.text-secondary",
+      "number-emphasis": "colors.text-primary",
+      "empty": "typography.scale.sm / colors.text-tertiary"
+    },
+    "chip": {
+      "bg": "transparent",
+      "border": "colors.border",
+      "text": "colors.text-secondary",
+      "active-bg": "colors.primary",
+      "active-text": "colors.text-on-primary",
+      "hover-border": "colors.border-strong",
+      "radius": "borders.radius.full",
+      "padding": "spacing.1 spacing.4",
+      "type": "typography.scale.sm"
+    },
+    "icon-button": {
+      "bg": "transparent",
+      "hover-bg": "colors.surface-muted",
+      "text": "colors.text-secondary",
+      "radius": "borders.radius.md",
+      "size": "28px"
+    },
+    "footer": {
+      "text": "typography.scale.xs / colors.text-tertiary",
+      "height": "32px"
+    },
+    "tray-menu": {
+      "bg": "colors.surface-elevated",
+      "border": "colors.border",
+      "text": "typography.scale.base / colors.text-primary",
+      "hover-bg": "colors.surface-muted",
+      "separator": "colors.border"
+    }
+  },
+  "layout": {
+    "grid": "4px",
+    "page-margin": "28px",
+    "card-gap": "16px",
+    "header-to-content": "20px",
+    "content-to-footer": "12px",
+    "table-columns": {
+      "app-name": "flex",
+      "app-down": "96px right",
+      "app-up": "96px right",
+      "app-lan": "64px right",
+      "nic-name": "flex",
+      "nic-down": "88px right",
+      "nic-up": "88px right"
+    }
+  },
+  "principles": [
+    "One memorable element: the 60-second signal band. Everything else is quiet.",
+    "Data channels own their colors: download is ink-green, upload is copper. Chrome never borrows them.",
+    "No shadows, no gradients, no decorative illustration. Depth is a 1px border.",
+    "Numbers are right-aligned and monospaced; names are left-aligned and human.",
+    "Never present developer concepts (PID, LUID, UTC bucket) in the primary reading path.",
+    "Never add NIC and application totals; label the two measurement bases where they meet.",
+    "Empty states explain what is missing and what the user can do; they never fake data."
+  ]
+}

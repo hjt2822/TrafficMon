@@ -4,7 +4,9 @@
  * (ETW owns its own worker internally). One WM_TIMER tick per second drives
  * tm_tick() and, in the history view, tm_history().
  */
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <windowsx.h>
 #include <shellapi.h>

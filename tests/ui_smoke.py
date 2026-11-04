@@ -10,6 +10,7 @@ known byte counts, and checks that the UI process exits cleanly after flushing:
 
 Requires an idle desktop session and administrator rights for the ETW half.
 """
+import os
 import pathlib
 import sqlite3
 import subprocess
@@ -18,7 +19,7 @@ import tempfile
 from contextlib import closing
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-EXE = ROOT / "build" / "trafficmon_ui.exe"
+EXE = pathlib.Path(os.environ.get("TRAFFICMON_UI_EXE", ROOT / "build" / "trafficmon_ui.exe")).resolve()
 GEN = ROOT / "tests" / "gen_known_traffic.py"
 
 

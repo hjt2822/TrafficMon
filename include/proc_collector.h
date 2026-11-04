@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <map>
 #include <tuple>
+#include <vector>
 #include "traffic_aggregator.h"
 
 struct ProcTraffic {

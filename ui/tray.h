@@ -3,6 +3,7 @@
 #define TM_TRAY_H
 
 #include <windows.h>
+#include <shellapi.h>  /* NOTIFYICONDATAW / NIM_* — not pulled in by WIN32_LEAN_AND_MEAN */
 
 #define TM_TRAY_CALLBACK (WM_APP + 1)
 #define TM_TRAY_OPEN     40001

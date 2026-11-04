@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "vs2022-x64",
+      "displayName": "Visual Studio 2022 x64",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "cacheVariables": {
+        "TRAFFICMON_BUILD_TOOLS": "ON",
+        "TRAFFICMON_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "MinGW-w64 Release (Ninja)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/mingw-release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "vs2022-release", "configurePreset": "vs2022-x64", "configuration": "Release" },
+    { "name": "vs2022-debug", "configurePreset": "vs2022-x64", "configuration": "Debug" },
+    { "name": "mingw-release", "configurePreset": "mingw-release" }
+  ],
+  "testPresets": [
+    {
+      "name": "vs2022-release",
+      "configurePreset": "vs2022-x64",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "mingw-release",
+      "configurePreset": "mingw-release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Paper — 流量台设计系统</title>
+<style>
+:root{
+  --color-primary:#0E5E56; --color-primary-hover:#0A4B45; --color-primary-soft:#DCEAE5;
+  --color-secondary:#A85F2A; --color-secondary-soft:#F0E3D8;
+  --color-background:#F2F4F1; --color-surface:#FFFFFF; --color-surface-muted:#E8EDE9;
+  --color-border:#D7DFDA; --color-border-strong:#B9C6C0;
+  --color-text-primary:#16211D; --color-text-secondary:#55645E; --color-text-tertiary:#66756E;
+  --color-success:#2F7D5A; --color-warning:#9A6B12; --color-error:#B0362D;
+  --font-display:"Bahnschrift","DIN Alternate","Segoe UI Semibold",sans-serif;
+  --font-body:"Microsoft YaHei UI","Microsoft YaHei","Segoe UI",Tahoma,sans-serif;
+  --font-mono:"Consolas","Cascadia Mono","Courier New",monospace;
+  --text-xs:11px; --text-sm:12px; --text-base:13px; --text-lg:15px;
+  --text-xl:18px; --text-2xl:20px; --text-3xl:34px;
+  --weight-medium:500; --weight-semibold:600;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-7:28px; --space-8:32px; --space-16:64px;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:10px; --radius-full:9999px;
+  --page-margin:28px; --card-gap:16px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--color-background)}
+body{margin:0;background:var(--color-background);color:var(--color-text-primary);font-family:var(--font-body);font-size:var(--text-base);line-height:20px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+.num,.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.display{font-family:var(--font-display)}
+.shell{max-width:1440px;margin:0 auto;padding:32px 40px 64px}
+.doc-head{display:flex;align-items:baseline;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--color-border);margin-bottom:24px}
+.doc-head h1{font-family:var(--font-display);font-size:24px;font-weight:var(--weight-semibold)}
+.doc-head .ver{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-tertiary)}
+.doc-head .note{margin-left:auto;font-size:var(--text-sm);color:var(--color-text-secondary)}
+.window{background:var(--color-background);border:1px solid var(--color-border);padding:0 var(--page-margin) 12px}
+.header{height:64px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--color-border)}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:24px;height:24px;display:block}
+.title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:var(--weight-semibold);letter-spacing:.01em}
+.subtitle{color:var(--color-text-tertiary);font-size:var(--text-xs);margin-left:8px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:var(--radius-full);background:var(--color-surface-muted);color:var(--color-text-secondary);font-size:var(--text-xs);line-height:14px;white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--color-success)}
+.dot.degraded{background:var(--color-warning)}
+.nav{margin-left:auto;display:flex;align-items:stretch;height:100%;gap:4px}
+.nav a{display:flex;align-items:center;padding:0 16px;color:var(--color-text-secondary);text-decoration:none;font-size:var(--text-base);border-bottom:2px solid transparent;transition:color 120ms ease-out,background 120ms ease-out}
+.nav a:hover{color:var(--color-text-primary);background:var(--color-surface-muted)}
+.nav a.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+.metrics{display:flex;align-items:flex-end;gap:64px;padding:24px 0 20px}
+.metric-label{color:var(--color-text-secondary);font-size:var(--text-sm);margin-bottom:4px}
+.metric-line{display:flex;align-items:baseline;gap:8px}
+.metric-value{font-family:var(--font-display);font-size:var(--text-3xl);line-height:38px;font-weight:var(--weight-semibold);font-variant-numeric:tabular-nums;color:var(--color-text-primary)}
+.metric.down .metric-value{color:var(--color-primary)}
+.metric.up .metric-value{color:var(--color-secondary)}
+.metric-unit{font-size:var(--text-base);color:var(--color-text-tertiary)}
+.metrics-side{margin-left:auto;display:flex;gap:32px;padding-bottom:4px}
+.side-stat{text-align:right}
+.side-label{font-size:var(--text-xs);color:var(--color-text-secondary)}
+.side-value{font-family:var(--font-mono);font-size:var(--text-lg);font-variant-numeric:tabular-nums}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px}
+.card-head{height:36px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.card-title{font-size:var(--text-lg);font-weight:var(--weight-medium)}
+.card-note{color:var(--color-text-tertiary);font-size:var(--text-xs)}
+.card-actions{margin-left:auto;display:flex;gap:8px}
+.legend{display:flex;align-items:center;gap:8px;color:var(--color-text-secondary);font-size:var(--text-xs)}
+.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.legend .down{background:var(--color-primary)}
+.legend .up{background:var(--color-secondary)}
+.band{position:relative;height:148px;border-top:1px solid var(--color-surface-muted)}
+.band svg{display:block;width:100%;height:148px}
+.band-max{position:absolute;top:8px;left:0;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-tertiary)}
+.axis{display:flex;justify-content:space-between;color:var(--color-text-tertiary);font-size:var(--text-xs);padding-top:4px}
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:var(--card-gap)}
+table{width:100%;border-collapse:collapse}
+th{height:28px;color:var(--color-text-secondary);font-size:var(--text-xs);font-weight:400;text-align:left;border-bottom:1px solid var(--color-border);padding:0 8px}
+th.r,td.r{text-align:right}
+td{height:36px;padding:0 8px;border-bottom:1px solid var(--color-surface-muted);font-size:var(--text-base);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--font-mono);font-size:var(--text-sm);color:var(--color-text-secondary);font-variant-numeric:tabular-nums}
+td.strong{color:var(--color-text-primary)}
+td.muted{color:var(--color-text-tertiary)}
+.footer{display:flex;align-items:center;gap:12px;height:32px;margin-top:8px;color:var(--color-text-tertiary);font-size:var(--text-xs)}
+.footer .spacer{margin-left:auto}
+.chips{display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 16px;border:1px solid var(--color-border);border-radius:var(--radius-full);background:transparent;color:var(--color-text-secondary);font-size:var(--text-sm);cursor:pointer;transition:background 120ms ease-out,border-color 120ms ease-out,color 120ms ease-out}
+.chip:hover{border-color:var(--color-border-strong);color:var(--color-text-primary)}
+.chip.active{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
+.icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:var(--radius-md);background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:background 120ms ease-out}
+.icon-btn:hover{background:var(--color-surface-muted);color:var(--color-text-primary)}
+.period{display:flex;align-items:center;gap:12px;padding:20px 0 12px}
+.period-title{font-size:var(--text-lg);font-weight:var(--weight-medium);min-width:140px;text-align:center}
+.period-totals{margin-left:auto;display:flex;gap:32px}
+.period-total .k{font-size:var(--text-xs);color:var(--color-text-secondary)}
+.period-total .v{font-family:var(--font-mono);font-size:var(--text-xl);font-variant-numeric:tabular-nums}
+.bars{display:flex;align-items:flex-end;gap:8px;height:220px;padding-top:12px;border-bottom:1px solid var(--color-border)}
+.bucket{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:100%;position:relative}
+.bar{width:44%;border-radius:2px 2px 0 0;background:var(--color-primary-soft);position:relative;min-height:2px}
+.bar.u{background:var(--color-secondary-soft)}
+.bar b{position:absolute;left:0;right:0;bottom:0;border-radius:2px 2px 0 0;background:var(--color-primary)}
+.bar.u b{background:var(--color-secondary)}
+.bar-axis{display:flex;gap:8px;padding-top:6px}
+.bar-axis span{flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--color-text-tertiary)}
+.section{margin-top:40px;padding-top:24px;border-top:1px solid var(--color-border)}
+.section h2{font-size:var(--text-xl);font-weight:var(--weight-semibold);font-family:var(--font-display);margin-bottom:4px}
+.section .lede{color:var(--color-text-secondary);font-size:var(--text-sm);margin-bottom:20px;max-width:760px}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.swatch{border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden;background:var(--color-surface)}
+.swatch .chip-color{height:56px}
+.swatch .meta{padding:8px 10px;font-size:10px;line-height:14px}
+.swatch .meta b{display:block;font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--color-text-secondary)}
+.types{display:grid;grid-template-columns:180px 1fr;gap:10px 24px;align-items:baseline}
+.types .k{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-tertiary)}
+.types .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacing-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-family:var(--font-mono);font-size:10px;color:var(--color-text-tertiary)}
+.spacing-row i{display:block;height:12px;background:var(--color-primary-soft);border-left:1px solid var(--color-primary)}
+.components{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.comp-box{border:1px dashed var(--color-border);border-radius:var(--radius-md);padding:20px;display:flex;flex-direction:column;gap:12px;background:rgba(255,255,255,.45)}
+.comp-label{font-size:var(--text-xs);color:var(--color-text-tertiary)}
+.empty{color:var(--color-text-tertiary);font-size:var(--text-sm);padding:24px 8px}
+.view{display:none}
+.view.active{display:block}
+@media (max-width:1100px){.grid,.components{grid-template-columns:1fr}.swatches{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="doc-head">
+    <h1>Signal Paper</h1>
+    <span class="ver">v1.0 · 2026-11-03</span>
+    <span class="note">网络流量监视器 · 桌面设计系统与视觉基准</span>
+  </header>
+
+  <div class="window">
+    <div class="header">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="10" width="5" height="11" rx="1.5" fill="#0E5E56"/>
+          <rect x="10" y="4" width="5" height="17" rx="1.5" fill="#A85F2A"/>
+          <rect x="17" y="13" width="4" height="8" rx="1.5" fill="#B9C6C0"/>
+        </svg>
+        <span class="title">流量台</span>
+        <span class="subtitle">本机网络测量</span>
+      </div>
+      <span class="pill"><span class="dot"></span>实时监控 · 管理员模式</span>
+      <nav class="nav">
+        <a href="#dashboard" class="active" id="nav-dash">仪表盘</a>
+        <a href="#history" id="nav-hist">历史</a>
+      </nav>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="dashboard">
+      <div class="metrics">
+        <div class="metric down">
+          <div class="metric-label">下载</div>
+          <div class="metric-line"><span class="metric-value">1.24</span><span class="metric-unit">MB/s</span></div>
+        </div>
+        <div class="metric up">
+          <div class="metric-label">上传</div>
+          <div class="metric-line"><span class="metric-value">86.0</span><span class="metric-unit">KB/s</span></div>
+        </div>
+        <div class="metrics-side">
+          <div class="side-stat"><div class="side-label">今日</div><div class="side-value">↓ 12.4 GB · ↑ 3.1 GB</div></div>
+          <div class="side-stat"><div class="side-label">本月</div><div class="side-value">↓ 210 GB · ↑ 48.6 GB</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">最近 60 秒</span>
+          <span class="card-note">按网卡总量</span>
+          <div class="card-actions">
+            <span class="legend"><i class="down"></i>下载</span>
+            <span class="legend"><i class="up"></i>上传</span>
+          </div>
+        </div>
+        <div class="band">
+          <div class="band-max">2.4 MB/s</div>
+          <svg viewBox="0 0 1000 140" preserveAspectRatio="none" role="img" aria-label="最近 60 秒上下行速度曲线">
+            <line x1="0" y1="8" x2="1000" y2="8" stroke="#E8EDE9" stroke-width="1"/>
+            <line x1="0" y1="38" x2="1000" y2="38" stroke="#E8EDE9" stroke-width="1"/>
+            <line x1="0" y1="68" x2="1000" y2="68" stroke="#E8EDE9" stroke-width="1"/>
+            <line x1="0" y1="98" x2="1000" y2="98" stroke="#E8EDE9" stroke-width="1"/>
+            <line x1="0" y1="128" x2="1000" y2="128" stroke="#D7DFDA" stroke-width="1"/>
+            <path d="M0,128 L0,120 L20,118 L40,119 L60,110 L80,112 L100,96 L120,100 L140,88 L160,92 L180,70 L200,76 L220,58 L240,64 L260,50 L280,55 L300,38 L320,44 L340,30 L360,36 L380,52 L400,48 L420,64 L440,60 L460,78 L480,72 L500,90 L520,84 L540,100 L560,94 L580,108 L600,102 L620,112 L640,106 L660,116 L680,110 L700,100 L720,104 L740,88 L760,94 L780,76 L800,82 L820,66 L840,72 L860,54 L880,60 L900,44 L920,50 L940,38 L960,46 L980,30 L1000,36 L1000,128 Z" fill="#DCEAE5"/>
+            <path d="M0,128 L0,120 L20,118 L40,119 L60,110 L80,112 L100,96 L120,100 L140,88 L160,92 L180,70 L200,76 L220,58 L240,64 L260,50 L280,55 L300,38 L320,44 L340,30 L360,36 L380,52 L400,48 L420,64 L440,60 L460,78 L480,72 L500,90 L520,84 L540,100 L560,94 L580,108 L600,102 L620,112 L640,106 L660,116 L680,110 L700,100 L720,104 L740,88 L760,94 L780,76 L800,82 L820,66 L840,72 L860,54 L880,60 L900,44 L920,50 L940,38 L960,46 L980,30 L1000,36" fill="none" stroke="#0E5E56" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M0,128 L0,124 L40,123 L80,125 L120,122 L160,124 L200,121 L240,123 L280,120 L320,122 L360,119 L400,121 L440,118 L480,120 L520,117 L560,119 L600,116 L640,118 L680,115 L720,117 L760,114 L800,116 L840,113 L880,115 L920,112 L960,114 L1000,111 L1000,128 Z" fill="#F0E3D8"/>
+            <path d="M0,128 L0,124 L40,123 L80,125 L120,122 L160,124 L200,121 L240,123 L280,120 L320,122 L360,119 L400,121 L440,118 L480,120 L520,117 L560,119 L600,116 L640,118 L680,115 L720,117 L760,114 L800,116 L840,113 L880,115 L920,112 L960,114 L1000,111" fill="none" stroke="#A85F2A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="axis"><span>-60s</span><span>-45s</span><span>-30s</span><span>-15s</span><span>现在</span></div>
+      </div>
+
+      <div class="grid" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">网卡</span>
+            <span class="card-note">实时速度</span>
+          </div>
+          <table>
+            <thead><tr><th>接口</th><th class="r">下载</th><th class="r">上传</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">以太网 2</td><td class="r n">1.18 MB/s</td><td class="r n">74.2 KB/s</td></tr>
+              <tr><td>Wi-Fi</td><td class="r n">62.1 KB/s</td><td class="r n">11.8 KB/s</td></tr>
+              <tr><td class="muted">Tailscale</td><td class="r n muted">0 B/s</td><td class="r n muted">0 B/s</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">今日应用</span>
+            <span class="card-note">按应用口径 · 不可与网卡合计相加</span>
+            <div class="card-actions"><button class="icon-btn" aria-label="更多"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="3" r="1.1" fill="currentColor"/><circle cx="7" cy="7" r="1.1" fill="currentColor"/><circle cx="7" cy="11" r="1.1" fill="currentColor"/></svg></button></div>
+          </div>
+          <table>
+            <thead><tr><th>应用</th><th class="r">下载</th><th class="r">上传</th><th class="r">局域网</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">chrome.exe</td><td class="r n strong">820 MB</td><td class="r n">12.4 MB</td><td class="r n">3%</td></tr>
+              <tr><td class="strong">Code.exe</td><td class="r n strong">210 MB</td><td class="r n">2.1 MB</td><td class="r n">18%</td></tr>
+              <tr><td class="strong">Windows 更新</td><td class="r n strong">96.8 MB</td><td class="r n">640 KB</td><td class="r n">—</td></tr>
+              <tr><td class="strong">WeChat.exe</td><td class="r n strong">44.2 MB</td><td class="r n">8.7 MB</td><td class="r n">61%</td></tr>
+              <tr><td class="strong">Docker Desktop</td><td class="r n strong">31.6 MB</td><td class="r n">1.2 MB</td><td class="r n">22%</td></tr>
+              <tr><td class="strong">python.exe</td><td class="r n strong">12.0 MB</td><td class="r n">980 KB</td><td class="r n">0%</td></tr>
+              <tr><td class="muted">其他 9 个应用</td><td class="r n muted">28.4 MB</td><td class="r n muted">3.6 MB</td><td class="r n muted">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>数据仅保存在本机 · C:\Users\Admin\AppData\Local\TrafficMon\traffic.sqlite3</span>
+        <span class="spacer"></span>
+        <span>网卡总量含系统与协议开销，不可与应用合计相加</span>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="history">
+      <div class="period">
+        <div class="chips">
+          <button class="chip active" id="chip-day" onclick="setHistory('day')">今天</button>
+          <button class="chip" id="chip-month" onclick="setHistory('month')">本月</button>
+        </div>
+        <button class="icon-btn" aria-label="前一天"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 3 4 7l5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="period-title" id="period-title">2026年11月3日</span>
+        <button class="icon-btn" aria-label="后一天"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M5 3l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="period-totals">
+          <div class="period-total"><div class="k">下载合计</div><div class="v" id="total-down">12.4 GB</div></div>
+          <div class="period-total"><div class="k">上传合计</div><div class="v" id="total-up">3.1 GB</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title" id="chart-title">每小时流量</span>
+          <span class="card-note">按网卡口径</span>
+          <div class="card-actions">
+            <span class="legend"><i class="down"></i>下载</span>
+            <span class="legend"><i class="up"></i>上传</span>
+          </div>
+        </div>
+        <div id="chart-day">
+          <div class="bars">
+            <div class="bucket"><div class="bar" style="height:6%"><b style="height:100%"></b></div><div class="bar u" style="height:2%"><b style="height:100%"></b></div></div>
+            <div class="bucket"><div class="bar" style="height:4%"></div><div class="bar u" style="height:2%"></div></div>
+            <div class="bucket"><div class="bar" style="height:3%"></div><div class="bar u" style="height:1%"></div></div>
+            <div class="bucket"><div class="bar" style="height:5%"></div><div class="bar u" style="height:2%"></div></div>
+            <div class="bucket"><div class="bar" style="height:8%"></div><div class="bar u" style="height:3%"></div></div>
+            <div class="bucket"><div class="bar" style="height:12%"></div><div class="bar u" style="height:4%"></div></div>
+            <div class="bucket"><div class="bar" style="height:22%"></div><div class="bar u" style="height:7%"></div></div>
+            <div class="bucket"><div class="bar" style="height:34%"></div><div class="bar u" style="height:12%"></div></div>
+            <div class="bucket"><div class="bar" style="height:46%"></div><div class="bar u" style="height:16%"></div></div>
+            <div class="bucket"><div class="bar" style="height:58%"></div><div class="bar u" style="height:21%"></div></div>
+            <div class="bucket"><div class="bar" style="height:66%"></div><div class="bar u" style="height:26%"></div></div>
+            <div class="bucket"><div class="bar" style="height:72%"></div><div class="bar u" style="height:30%"></div></div>
+            <div class="bucket"><div class="bar" style="height:64%"></div><div class="bar u" style="height:27%"></div></div>
+            <div class="bucket"><div class="bar" style="height:78%"></div><div class="bar u" style="height:33%"></div></div>
+            <div class="bucket"><div class="bar" style="height:88%"></div><div class="bar u" style="height:36%"></div></div>
+            <div class="bucket"><div class="bar" style="height:94%"></div><div class="bar u" style="height:40%"></div></div>
+            <div class="bucket"><div class="bar" style="height:82%"></div><div class="bar u" style="height:35%"></div></div>
+            <div class="bucket"><div class="bar" style="height:70%"></div><div class="bar u" style="height:31%"></div></div>
+            <div class="bucket"><div class="bar" style="height:76%"></div><div class="bar u" style="height:34%"></div></div>
+            <div class="bucket"><div class="bar" style="height:64%"></div><div class="bar u" style="height:29%"></div></div>
+            <div class="bucket"><div class="bar" style="height:52%"></div><div class="bar u" style="height:24%"></div></div>
+            <div class="bucket"><div class="bar" style="height:38%"></div><div class="bar u" style="height:18%"></div></div>
+            <div class="bucket"><div class="bar" style="height:24%"></div><div class="bar u" style="height:11%"></div></div>
+            <div class="bucket"><div class="bar" style="height:12%"></div><div class="bar u" style="height:6%"></div></div>
+          </div>
+          <div class="bar-axis"><span>0</span><span>3</span><span>6</span><span>9</span><span>12</span><span>15</span><span>18</span><span>21</span><span>23</span></div>
+        </div>
+        <div id="chart-month" style="display:none">
+          <div class="bars">
+            <div class="bucket"><div class="bar" style="height:40%"></div><div class="bar u" style="height:18%"></div></div>
+            <div class="bucket"><div class="bar" style="height:56%"></div><div class="bar u" style="height:24%"></div></div>
+            <div class="bucket"><div class="bar" style="height:34%"></div><div class="bar u" style="height:14%"></div></div>
+            <div class="bucket"><div class="bar" style="height:62%"></div><div class="bar u" style="height:26%"></div></div>
+            <div class="bucket"><div class="bar" style="height:48%"></div><div class="bar u" style="height:21%"></div></div>
+            <div class="bucket"><div class="bar" style="height:72%"></div><div class="bar u" style="height:30%"></div></div>
+            <div class="bucket"><div class="bar" style="height:44%"></div><div class="bar u" style="height:19%"></div></div>
+            <div class="bucket"><div class="bar" style="height:80%"></div><div class="bar u" style="height:34%"></div></div>
+            <div class="bucket"><div class="bar" style="height:58%"></div><div class="bar u" style="height:25%"></div></div>
+            <div class="bucket"><div class="bar" style="height:66%"></div><div class="bar u" style="height:28%"></div></div>
+            <div class="bucket"><div class="bar" style="height:52%"></div><div class="bar u" style="height:22%"></div></div>
+            <div class="bucket"><div class="bar" style="height:88%"></div><div class="bar u" style="height:38%"></div></div>
+            <div class="bucket"><div class="bar" style="height:74%"></div><div class="bar u" style="height:32%"></div></div>
+            <div class="bucket"><div class="bar" style="height:60%"></div><div class="bar u" style="height:26%"></div></div>
+            <div class="bucket"><div class="bar" style="height:46%"></div><div class="bar u" style="height:20%"></div></div>
+            <div class="bucket"><div class="bar" style="height:92%"></div><div class="bar u" style="height:40%"></div></div>
+            <div class="bucket"><div class="bar" style="height:70%"></div><div class="bar u" style="height:30%"></div></div>
+            <div class="bucket"><div class="bar" style="height:56%"></div><div class="bar u" style="height:24%"></div></div>
+            <div class="bucket"><div class="bar" style="height:64%"></div><div class="bar u" style="height:28%"></div></div>
+            <div class="bucket"><div class="bar" style="height:50%"></div><div class="bar u" style="height:21%"></div></div>
+            <div class="bucket"><div class="bar" style="height:38%"></div><div class="bar u" style="height:16%"></div></div>
+            <div class="bucket"><div class="bar" style="height:68%"></div><div class="bar u" style="height:29%"></div></div>
+            <div class="bucket"><div class="bar" style="height:54%"></div><div class="bar u" style="height:23%"></div></div>
+            <div class="bucket"><div class="bar" style="height:76%"></div><div class="bar u" style="height:33%"></div></div>
+            <div class="bucket"><div class="bar" style="height:62%"></div><div class="bar u" style="height:27%"></div></div>
+            <div class="bucket"><div class="bar" style="height:48%"></div><div class="bar u" style="height:20%"></div></div>
+            <div class="bucket"><div class="bar" style="height:84%"></div><div class="bar u" style="height:36%"></div></div>
+            <div class="bucket"><div class="bar" style="height:58%"></div><div class="bar u" style="height:25%"></div></div>
+            <div class="bucket"><div class="bar" style="height:42%"></div><div class="bar u" style="height:18%"></div></div>
+            <div class="bucket"><div class="bar" style="height:30%"></div><div class="bar u" style="height:13%"></div></div>
+            <div class="bucket"><div class="bar" style="height:9%"></div><div class="bar u" style="height:4%"></div></div>
+          </div>
+          <div class="bar-axis"><span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>31</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <span class="card-title">应用排行</span>
+          <span class="card-note">按应用口径 · 当前时段合计</span>
+        </div>
+        <table>
+          <thead><tr><th>应用</th><th class="r">下载</th><th class="r">上传</th><th class="r">局域网</th></tr></thead>
+          <tbody>
+            <tr><td class="strong">chrome.exe</td><td class="r n strong">6.8 GB</td><td class="r n">620 MB</td><td class="r n">4%</td></tr>
+            <tr><td class="strong">Windows 更新</td><td class="r n strong">2.4 GB</td><td class="r n">18 MB</td><td class="r n">—</td></tr>
+            <tr><td class="strong">Code.exe</td><td class="r n strong">1.1 GB</td><td class="r n">14 MB</td><td class="r n">22%</td></tr>
+            <tr><td class="strong">WeChat.exe</td><td class="r n strong">620 MB</td><td class="r n">96 MB</td><td class="r n">58%</td></tr>
+            <tr><td class="strong">Docker Desktop</td><td class="r n strong">410 MB</td><td class="r n">8 MB</td><td class="r n">31%</td></tr>
+            <tr><td class="strong">python.exe</td><td class="r n strong">180 MB</td><td class="r n">4 MB</td><td class="r n">0%</td></tr>
+            <tr><td class="muted">其他 12 个应用</td><td class="r n muted">310 MB</td><td class="r n muted">42 MB</td><td class="r n muted">—</td></tr>
+          </tbody>
+        </table>
+        <div class="empty" id="hist-empty" style="display:none">这个时段还没有应用流量记录。以管理员身份运行后，应用排行才会出现。</div>
+      </div>
+
+      <div class="footer"><span>数据仅保存在本机 · 单位为 1024 进制</span><span class="spacer"></span><span>网卡总量与应用合计不可相加</span></div>
+    </section>
+  </div>
+
+  <!-- PALETTE -->
+  <section class="section">
+    <h2>色板</h2>
+    <p class="lede">双通道色：墨绿始终代表下行，铜色始终代表上行。界面装饰只使用中性色，不借用通道色。</p>
+    <div class="swatches">
+      <div class="swatch"><div class="chip-color" style="background:#F2F4F1"></div><div class="meta">background<b>#F2F4F1</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#FFFFFF"></div><div class="meta">surface<b>#FFFFFF</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#E8EDE9"></div><div class="meta">surface-muted<b>#E8EDE9</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#D7DFDA"></div><div class="meta">border<b>#D7DFDA</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#16211D"></div><div class="meta">text-primary<b>#16211D</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#55645E"></div><div class="meta">text-secondary<b>#55645E</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#66756E"></div><div class="meta">text-tertiary<b>#66756E</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#0E5E56"></div><div class="meta">primary / 下载<b>#0E5E56</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#A85F2A"></div><div class="meta">secondary / 上传<b>#A85F2A</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#DCEAE5"></div><div class="meta">primary-soft<b>#DCEAE5</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#F0E3D8"></div><div class="meta">secondary-soft<b>#F0E3D8</b></div></div>
+      <div class="swatch"><div class="chip-color" style="background:#9A6B12"></div><div class="meta">warning<b>#9A6B12</b></div></div>
+    </div>
+  </section>
+
+  <!-- TYPE + SPACING -->
+  <section class="section">
+    <h2>字体与间距</h2>
+    <p class="lede">Bahnschrift 只用于标题和大数字；雅黑 UI 承担中文正文；Consolas 承担所有表格数字。4px 基准栅格。</p>
+    <div class="types">
+      <span class="k">3xl / 34 / Bahnschrift</span><span class="v display" style="font-size:34px;line-height:38px;font-weight:600">1.24 MB/s</span>
+      <span class="k">xl / 18 / Bahnschrift</span><span class="v display" style="font-size:18px;line-height:24px;font-weight:600">流量台 · 最近 60 秒</span>
+      <span class="k">lg / 15 / YaHei UI</span><span class="v" style="font-size:15px;line-height:22px;font-weight:500">今日应用 · 按应用口径</span>
+      <span class="k">base / 13 / YaHei UI</span><span class="v" style="font-size:13px;line-height:20px">数据仅保存在本机。关闭窗口后程序留在托盘继续测量。</span>
+      <span class="k">sm / 12 / Consolas</span><span class="v mono" style="font-size:12px">↓ 12.4 GB · ↑ 3.1 GB · LAN 18%</span>
+      <span class="k">xs / 11 / YaHei UI</span><span class="v" style="font-size:11px;color:#66756E">-60s　-30s　现在　网卡总量含协议开销</span>
+    </div>
+    <div style="margin-top:24px;max-width:520px">
+      <div class="spacing-row"><span style="width:32px">4</span><i style="width:4px"></i><span>chip gap</span></div>
+      <div class="spacing-row"><span style="width:32px">8</span><i style="width:8px"></i><span>inline gap</span></div>
+      <div class="spacing-row"><span style="width:32px">12</span><i style="width:12px"></i><span>label gap</span></div>
+      <div class="spacing-row"><span style="width:32px">16</span><i style="width:16px"></i><span>card gap</span></div>
+      <div class="spacing-row"><span style="width:32px">20</span><i style="width:20px"></i><span>card padding</span></div>
+      <div class="spacing-row"><span style="width:32px">28</span><i style="width:28px"></i><span>page margin</span></div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section class="section">
+    <h2>组件</h2>
+    <div class="components">
+      <div class="comp-box">
+        <span class="comp-label">状态与导航</span>
+        <div class="row" style="display:flex;gap:8px;align-items:center">
+          <span class="pill"><span class="dot"></span>实时监控 · 管理员模式</span>
+          <span class="pill"><span class="dot degraded"></span>连接表模式 · 应用统计不可用</span>
+        </div>
+        <div class="chips"><button class="chip active">今天</button><button class="chip">本月</button><button class="chip">7 天</button></div>
+      </div>
+      <div class="comp-box">
+        <span class="comp-label">图标按钮</span>
+        <div style="display:flex;gap:8px">
+          <button class="icon-btn" aria-label="上一天"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 3 4 7l5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="icon-btn" aria-label="下一天"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M5 3l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="icon-btn" aria-label="更多"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="3" r="1.1" fill="currentColor"/><circle cx="7" cy="7" r="1.1" fill="currentColor"/><circle cx="7" cy="11" r="1.1" fill="currentColor"/></svg></button>
+        </div>
+      </div>
+      <div class="comp-box">
+        <span class="comp-label">空状态：无应用数据（未提权）</span>
+        <div class="empty" style="padding:0">需要管理员权限才能按应用统计。网卡速度与累计流量仍可正常查看。</div>
+      </div>
+      <div class="comp-box">
+        <span class="comp-label">空状态：时段无记录</span>
+        <div class="empty" style="padding:0">这个时段还没有流量记录。选择其他日期，或保持程序运行以开始采集。</div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:40px;font-size:11px;color:#66756E">Signal Paper · 设计 token 见 <span class="mono">design-tokens.json</span> · 实现对照见 <span class="mono">design-system.css</span></p>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('active', v.id===id)});
+  document.getElementById('nav-dash').classList.toggle('active', id==='dashboard');
+  document.getElementById('nav-hist').classList.toggle('active', id==='history');
+}
+document.getElementById('nav-dash').addEventListener('click',function(e){e.preventDefault();show('dashboard')});
+document.getElementById('nav-hist').addEventListener('click',function(e){e.preventDefault();show('history')});
+function setHistory(mode){
+  var day = mode==='day';
+  document.getElementById('chip-day').classList.toggle('active', day);
+  document.getElementById('chip-month').classList.toggle('active', !day);
+  document.getElementById('chart-day').style.display = day?'block':'none';
+  document.getElementById('chart-month').style.display = day?'none':'block';
+  document.getElementById('chart-title').textContent = day?'每小时流量':'每日流量';
+  document.getElementById('period-title').textContent = day?'2026年11月3日':'2026年11月';
+  document.getElementById('total-down').textContent = day?'12.4 GB':'210 GB';
+  document.getElementById('total-up').textContent = day?'3.1 GB':'48.6 GB';
+  document.getElementById('hist-empty').style.display = day?'none':'block';
+}
+</script>
+</body>
+</html>
