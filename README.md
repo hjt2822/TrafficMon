@@ -60,8 +60,6 @@ cmake --build --preset vs2022-release --target trafficmon_ui
 
 UI 文件仍按 C11 编译，核心与桥接按 C++17 编译；SQLite 从仓库源码静态构建，不需要预先生成 `.o`。MSVC 使用 `/utf-8`、静态 CRT 和 Release 链接优化，清单由资源文件嵌入。
 
-**验证范围：** 本机未安装 Visual Studio，尚未实测 MSVC 编译；CMake 构建已使用 MinGW-w64 验证，不能据此视为 MSVC 已验证。
-
 ### MinGW-w64
 
 依赖 gcc / g++ / windres。原有脚本仍可使用：
