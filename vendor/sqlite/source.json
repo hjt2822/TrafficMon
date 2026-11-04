@@ -1,0 +1,7 @@
+{
+  "version": "3.50.4",
+  "source": "https://www.sqlite.org/2025/sqlite-amalgamation-3500400.zip",
+  "archive_sha256": "1d3049dd0f830a025a53105fc79fd2ab9431aea99e137809d064d8ee8356b032",
+  "license": "Public domain (see sqlite3.c header)",
+  "checksum_note": "Locally computed archive digest, not independently authenticated"
+}
